@@ -16,7 +16,7 @@ library(randtests)
 #assume taskID is in {1,2,...,196} because of computing restraints
 #originally, values of taskID were run in parallel on Duke's Computing Cluster
 taskID = 1
-set.seed(taskID)
+set.seed(1)
 
 ##########
 # set up code to partition data into 4 roughly equal sections
@@ -66,6 +66,8 @@ for(k in 1:7){ #let K vary in {2,3,...,8}
 #     ind_mat[ind,3] = i
 #   }
 # }
+
+set.seed(taskID)
 
 #load dataset from Dethlefsen and Relman 2011
 #current version taken from Kris Sankaran's github

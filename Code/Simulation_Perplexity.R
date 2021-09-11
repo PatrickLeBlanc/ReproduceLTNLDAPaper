@@ -3,6 +3,7 @@ library(RcppArmadillo)
 library(pgdraw)
 library(RcppDist) #probably unnecessary, but part of legacy code
 library(topicmodels)
+library(combinat)
 
 taskID = 1 #used for setting random seed and saving results
 
@@ -985,3 +986,31 @@ perp = c(ltn_perp,gibbs_perp,vem_perp)
 
 #save the perplexity results, name according to taskID
 save(perp,file = paste("../Results/Simulations/Perplexity/perp",toString(taskID),".rda",sep=""))
+
+# ##############
+# # optional code for L_p distances
+# #set p
+# p_norm = 2
+# 
+# #find L_[ distance for phi for various permutations of 1:K to correct for label switching
+# perms = permn(1:K)
+# L_p_vec = rep(0,length(perms))
+# for(i in 1:length(perms)){
+#   
+#   L_p = 0
+#   for(k in 1:K){
+#     L_p = L_p + sum((true_phi_dk[,k] - post_phi_dk[,perms[[i]][k]])^p_norm)
+#   }
+#   L_p_vec[i] = L_p^(1/p_norm)
+# }
+# #find the permutaiton which minimizes label switching
+# perm = perms[[which(L_p_vec == min(L_p_vec))]]
+# 
+# #find L_p distances for the three paraemters
+# L_phi = sum((true_phi_dk - post_phi_dk[,perm])^p_norm)^(1/p_norm)
+# L_beta_kdv = sum((true_beta_kdv - post_beta_kdv[perm,,])^p_norm)^(1/p_norm)
+# L_beta_kv = sum((true_beta_kv - post_beta_kv[perm,])^p_norm)^(1/p_norm)
+# 
+# #record and save
+# L = c(L_phi,L_beta_kdv,L_beta_kv)
+# save(L,file = paste("L",toString(taskID),".rda",sep=""))
