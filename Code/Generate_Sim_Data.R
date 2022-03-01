@@ -261,7 +261,7 @@ Lambda = diag(p)
 
 #set hyperparameters for covariance priors
 a_L = 5
-b_L = 5*p
+b_L = 5*(p_L+2)
 a_U = 10^4
 b_U = 10
 
