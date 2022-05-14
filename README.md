@@ -1,8 +1,10 @@
 # ReproduceLTNLDAPaper
 
-This repository contains the code to reproduce the numerical examples and data analysis in LeBlanc and Ma, as well as some results.  The code used to produce the results in the paper was written before the LTNLDA package and so does not make use of the package.  In addition, it contains a number of places where the code could be improved to make it more efficient; in the interests of remaining close to the original code, I have not modified these.  
+This repository contains the code to reproduce the numerical examples and data analysis in LeBlanc and Ma (2022), as well as some results.  The code used to produce the results in the paper was written before the LTNLDA package and so does not make use of the package.  In addition, it contains a number of places where the code could be improved to make it more efficient; in the interests of remaining close to the original code, I have not modified these.  
 
-Included in this repository are three main directories: Code, Data, and Results.  The Code repository contains the code necessary to reproduce the results in the paper; the Data repository contains a tree structure and a phyloseq object, both retrieved from (Dethlefsen and Relman 2011) which were used in the paper; Results contains summaries of results for both numerical simulations and data analysis.
+Included in this repository are three main directories: Code, Data, and Results.  The Code repository contains the code necessary to reproduce the results in the paper; the Data repository contains a tree structure and a phyloseq object, both retrieved from (Dethlefsen and Relman 2011) which were used in the paper; Results contains summaries of results for both numerical simulations and data analysis.  
+
+In addition to code necessary to reproduce the results in the main paper of LeBlanc and Ma (2022), there is some code useful to reproduce the figures and models in the supporting information.  This code is not as complete as the code necessary to reproduce the results in the main body, but do provide a framework towards reproducing the results in the suporting information.  
 
 Much of this code was originally designed to run on the Duke Computing Cluster (DCC).  Multiple instances of the same code would be run in parallel on different cores, with the only difference being the taskID.  Thus, in much of the code the taskID parameter controls many other parameters.  
 
@@ -70,6 +72,10 @@ Simulation_Plot_Chains.R loads the two dataframes produced by Simulation_Process
 
 Simulation_Process_Chain_Dist.R loads Markov Chains produced by the Data_Chain.R script for $K \in \{4,5,7,10\}$ and $C = 10$.  It processes these into two dataframes: Simulation_abun_df and Simulation_dist_df.  Simulation_abun_df contains posterior mean estimaets of $\phi_d$ for LTN-LDA and LDA for all values of $K$.  For each value, it includes a sample ID, a permutation to correct for label switching as $K$ changes, a model ID, and a subcommunity ID.  Simulation_dist_df contains posterior mean estimates of $\beta_{d,k}$ distributions for LTN-LDA, posterior mean estimates of $\beta_k$ for LTN-LDA, and posterior mean estimates of $\beta_k$ for LDA.  For each value, we record the corresponding the corresponding leaf number, sample number, distribution ID, and subcommunity ID.  The subcommunities for Data_dist_df are permuted so that they correspond to the subcommunities in Simulation_abun_df.
 
+## Other
+
+In addition to the scripts mentioned above, there are a number of scripts with the prefix Sim as well as one named Generate_Sim_Data.R.  These allow partial reproduction of the results in the supporting information.  
+
 # Data
 
 Stores the two data objects used in the paper.
@@ -81,6 +87,10 @@ abt.rda is a phyloseq object containing the dataset of (Dethlefsen and Relman 20
 ## tree_mat.rda
 
 A phylogenetic tree structure obtained from modifying the abt.rda dataset.
+
+## Other
+
+ps_sim.rda and ps_sim_test.rda were used in producing part of the supporting information.
 
 # Results
 
@@ -153,7 +163,7 @@ This directory is blank --- the means and standard errors of the perplexity resu
 # References
 
 * Les Dethlefsen and David A. Relman. Incomplete recovery and individualized responses of the human distal gut microbiota to repeated antibiotic perturbation. Proceedings of the National Academy of the Sciences of the United States of America. 18(Supplement 1): 4554-4561, 2011. 
-* LeBlanc and Ma
+* LeBlanc and Ma 2022.  Microbiome subcommunity learning with logistic-tree normal latent Dirichlet allocation.  https://arxiv.org/abs/2109.05386, 2022.
 
 Additionally, I inspiration for coding a collapsed LDA Gibbs sampler from:
 
