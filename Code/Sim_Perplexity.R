@@ -1,5 +1,12 @@
 library(phyloseq)
 library(LTNLDA)
+library(topicmodels)
+
+#used for setting random seed and saving results
+#set using slurm ID
+taskID = as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+
+set.seed(taskID)
 
 #load dataset from Dethlefsen and Relman 2011
 #current version taken from Kris Sankaran's github
@@ -261,8 +268,8 @@ Phi_L = diag(p_L)
 Lambda = diag(p)
 
 #set hyperparameters for covariance priors
-a_L = 100
-b_L = 2*a_L
+a_L = 5
+b_L = 5*(p_L+2)
 a_U = 10^4
 b_U = 10
 
@@ -321,7 +328,7 @@ upper_coord_L_C = upper_coord_L - 1
 
 true_W_L_ppk =  array(0,dim=c(p_L,p_L,true_K))
 for(k in 1:true_K){
-  true_W_L_ppk[,,k] = f_gwish(true_G_L_ppk[,,k],a_L+(p_L+2),b_L*Phi_L)
+  true_W_L_ppk[,,k] = f_gwish(true_G_L_ppk[,,k],a_L*(p_L+2),b_L*Phi_L)
 }
 true_Sigma_L_ppk = array(0,dim=c(p_L,p_L,true_K))
 for(k in 1:true_K){
@@ -418,12 +425,12 @@ words = matrix(0,nrow=D,ncol=N)
 for (d in 1:D){ #for each document
   for (n in 1:N){ #for each word
     ta = true_ta[[d]][n] #find the topic assignment
-
+    
     prob_vec = rep(0,length(leaves))
     for (leaf in leaves){ #for each leaf
       prob_vec[leaf] = prod(true_theta_kda[ta,d,leaf_success[[leaf]]])*prod((1-true_theta_kda[ta,d,leaf_failures[[leaf]]]))
     }
-
+    
     words[d,n] = sample(leaves,1,prob = prob_vec)
   }
 }
@@ -441,9 +448,6 @@ rownames(dtm) = tree$tip.label
 #construct phyloseq object
 OTU = otu_table(dtm,taxa_are_rows = TRUE)
 ps_sim = phyloseq(OTU,tree)
-#save phyloseq object
-save(ps_sim,file="../Data/ps_sim.rda")
-
 
 ##################
 # Make test set #
@@ -570,5 +574,45 @@ rownames(dtm) = tree$tip.label
 OTU = otu_table(dtm,taxa_are_rows = TRUE)
 ps_sim_test = phyloseq(OTU,tree)
 
-#save phyloseq object
-save(ps_sim_test,file="../Data/ps_sim_test.rda")
+
+#################################
+# Run model and find perplexity #
+#################################
+
+#set the number of subcommunities
+K = 2
+#set C to truth
+C = 9
+
+#run the LTNLDA model - default values correspond to true values except for K and C
+model = LTNLDA_cov(ps_sim,K = K, C = C)
+
+#find the perplexity on a test set
+perp = LTNLDA_Perplexity(model, test_ps, iterations, burnin, thin)
+
+ltn_perp = perp$Perplexity
+
+###############################
+# run lda and find perpelxity #
+###############################
+
+##########
+# topicmodels
+# use the topic models package to estimate perplexity for LDA
+# same number of iterations as LTN-LDA
+# use a Gibbs sampler and a variational EM algorithm
+
+dtm = t(otu_table(ps_sim))
+LDA_out = LDA(dtm,k = K, method = "Gibbs", control = list(iter = 20000))
+dtm = t(otu_table(ps_sim_test))
+gibbs_perp = perplexity(LDA_out, newdata = dtm)
+
+dtm = t(otu_table(ps_sim))
+LDA_out = LDA(dtm,k = K, method = "VEM")
+dtm = t(otu_table(ps_sim_test))
+vem_perp = perplexity(LDA_out, newdata = extra_dtm)
+
+perp = c(ltn_perp,gibbs_perp,vem_perp)
+
+#save the perplexity results, name according to taskID
+save(perp,file = paste("../Results/Simulations/Perplexity/perp",toString(taskID),".rda",sep=""))
